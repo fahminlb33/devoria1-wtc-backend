@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 
-	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/joho/godotenv"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 	"go.elastic.co/apm/module/apmfiber"
 	"go.elastic.co/apm/module/apmgorm"
 	_ "go.elastic.co/apm/module/apmgorm/dialects/postgres"
 	"gorm.io/gorm"
+
+	_ "github.com/fahminlb33/devoria1-wtc-backend/docs"
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/util"
 )
 
 type Product struct {
@@ -21,21 +23,17 @@ type Product struct {
 	Price uint
 }
 
-// @title Fiber Example API
+// @title MEWS API
 // @version 1.0
-// @description This is a sample swagger for Fiber
+// @description MEWS API for Devoria's WTC
 // @termsOfService http://swagger.io/terms/
-// @contact.name API Support
-// @contact.email fiber@swagger.io
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @host localhost:8080
+// @contact.name Fahmi Noor Fiqri
+// @license.name MIT License
+// @license.url http://www.opensource.org/licenses/MIT
+// @host :9000
 // @BasePath /
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	util.LoadConfig()
 
 	app := fiber.New()
 
@@ -52,17 +50,12 @@ func main() {
 	// basic auth
 	app.Use(basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"john":  "doe",
-			"admin": "123456",
+			util.GlobalConfig.Authentication.BasicUsername: util.GlobalConfig.Authentication.BasicPassword,
 		},
 	}))
 
 	// swagger
-	app.Get("/swagger/*", swagger.New(swagger.Config{ // custom
-		URL:          "http://example.com/doc.json",
-		DeepLinking:  false,
-		DocExpansion: "none",
-	}))
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	// GET /api/register
 	app.Get("/api/*", func(c *fiber.Ctx) error {
@@ -100,7 +93,7 @@ func main() {
 		return c.SendString(msg) // => Hello john 👋!
 	})
 
-	log.Fatal(app.Listen(":9000"))
+	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", util.GlobalConfig.Server.Host, util.GlobalConfig.Server.Port)))
 }
 
 // login godoc
@@ -110,10 +103,6 @@ func main() {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Account ID"
-// @Success      200  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Failure      404  {object}  httputil.HTTPError
-// @Failure      500  {object}  httputil.HTTPError
 // @Router       /accounts/{id} [get]
 func login() {
 
