@@ -1,0 +1,102 @@
+version: "3.9"
+
+# --- app services
+services:
+  # elasticsearch node
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.2
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - cluster.name=docker-cluster
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=65%
+      - cluster.routing.allocation.disk.watermark.high=70%
+      - xpack.security.enabled=true
+      - xpack.security.audit.enabled=true
+      - ELASTIC_PASSWORD=password
+      - "ES_JAVA_OPTS=-XX:UseAVX=2 -Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - volume_es:/usr/share/elasticsearch/data
+    networks:
+      - network_main
+  # elastic apm server
+  apm:
+    image: docker.elastic.co/apm/apm-server:7.15.2
+    depends_on: 
+      - elasticsearch
+    ports:
+      - 8200:8200
+    command: >
+      apm-server -e
+        -E apm-server.rum.enabled=true
+        -E apm-server.kibana.enabled=true
+        -E apm-server.kibana.host=kibana:5601
+        -E setup.kibana.host=kibana:5601
+        -E setup.template.settings.index.number_of_replicas=0
+        -E output.elasticsearch.hosts=["elasticsearch:9200"]
+        -E output.elasticsearch.username=elastic
+        -E output.elasticsearch.password=password
+    networks:
+      - network_main
+  # kibana dashboard
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.2
+    restart: always
+    depends_on: 
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: password
+    networks:
+      - network_main
+  # postgresql
+  postgresql:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: fahmi
+      POSTGRES_PASSWORD: fahmi
+      POSTGRES_DB: devoria
+    volumes:
+      - volume_postgres:/var/lib/postgresql/data
+  # backend service
+  backend:
+    build: .
+    depends_on: 
+      - elasticsearch
+      - apm
+      - kibana
+      - postgresql
+    ports:
+      - 9000:9000
+    environment:
+      POSTGRESQL_URI: postgres://fahmi:fahmi@postgresql:5432/devoria
+      DEVELOP_IN_DOCKER_COMPOSE: true
+    networks:
+      - network_main
+
+# --- app volumes
+volumes:
+  volume_es:
+    driver: local
+  volume_postgres:
+    driver: local
+
+# --- app networks
+networks:
+  network_main:
+    driver: bridge
