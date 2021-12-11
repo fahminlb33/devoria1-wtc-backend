@@ -17,7 +17,7 @@ function test() {
 
 function coverage() {
     New-Item -Force -ItemType directory -Path coverage | Out-Null
-    go test -v -coverprofile coverage/coverage ./...
+    go test -v -race -covermode=atomic -coverprofile coverage/coverage ./...
     go tool cover -html=coverage/coverage -o coverage/coverage.html
 }
 
