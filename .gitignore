@@ -32,3 +32,8 @@ docs/
 
 # Coverage files
 coverage/
+
+# Key pairs
+passphrase.txt
+private.pem
+public.pem
