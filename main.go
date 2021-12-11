@@ -76,7 +76,7 @@ func main() {
 	// swagger
 	docs.SwaggerInfo.BasePath = "/api"
 	router.GET("", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/api/swagger/index.html")
+		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
 	})
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
@@ -106,14 +106,14 @@ func main() {
 
 	// wait for termination signal
 	<-quit
-	log.Println("Shutdown Server ...")
+	log.Println("Shutdown server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// gracefully shutdown app
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal("Server Shutdown:", err)
+		log.Fatal("Server shutdown:", err)
 	}
 
 	log.Println("Server exiting")
