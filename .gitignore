@@ -29,3 +29,6 @@
 
 # Swag generated files
 docs/
+
+# Coverage files
+coverage/
