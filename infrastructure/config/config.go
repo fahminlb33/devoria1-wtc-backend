@@ -1,4 +1,4 @@
-package util
+package config
 
 import (
 	"log"
@@ -13,9 +13,10 @@ type Config struct {
 		Port int    `envconfig:"SERVER_PORT"`
 	}
 	Authentication struct {
-		BasicUsername string `envconfig:"AUTH_BASIC_USERNAME"`
-		BasicPassword string `envconfig:"AUTH_BASIC_PASSWORD"`
-		JwtSecret     string `envconfig:"AUTH_JWT_SECRET"`
+		BasicUsername  string `envconfig:"AUTH_BASIC_USERNAME"`
+		BasicPassword  string `envconfig:"AUTH_BASIC_PASSWORD"`
+		PrivateKeyPath string `envconfig:"AUTH_JWT_PRIVATE_KEY_PATH"`
+		PublicKeyPath  string `envconfig:"AUTH_JWT_PUBLIC_KEY_PATH"`
 	}
 	Database struct {
 		URI string `envconfig:"DB_URI"`
@@ -32,6 +33,6 @@ func LoadConfig() {
 
 	envconfigErr := envconfig.Process("", &GlobalConfig)
 	if envconfigErr != nil {
-		log.Fatal("Error decoding env config", envconfigErr)
+		log.Fatal("Error decoding config from environment variables", envconfigErr)
 	}
 }

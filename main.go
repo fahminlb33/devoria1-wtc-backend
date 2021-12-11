@@ -1,27 +1,27 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/basicauth"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
-	"go.elastic.co/apm/module/apmfiber"
-	"go.elastic.co/apm/module/apmgorm"
-	_ "go.elastic.co/apm/module/apmgorm/dialects/postgres"
-	"gorm.io/gorm"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 
-	_ "github.com/fahminlb33/devoria1-wtc-backend/docs"
-	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/util"
+	docs "github.com/fahminlb33/devoria1-wtc-backend/docs"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/fahminlb33/devoria1-wtc-backend/domain/articles"
+	"github.com/fahminlb33/devoria1-wtc-backend/domain/users"
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/authentication"
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/config"
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/database"
 )
-
-type Product struct {
-	gorm.Model
-	Code  string
-	Price uint
-}
 
 // @title MEWS API
 // @version 1.0
@@ -33,77 +33,88 @@ type Product struct {
 // @host :9000
 // @BasePath /
 func main() {
-	util.LoadConfig()
+	// initialize services
+	config.LoadConfig()
+	authentication.InitializeJwtAuth()
 
-	app := fiber.New()
+	// open DB conection
+	db, err := database.Initialize()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// enable apm
-	app.Use(apmfiber.Middleware())
+	// database initialization
+	err = database.MigrateIfNeeded(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = database.SeedIfNeeded(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// create new router
+	router := gin.New()
+
+	router.Use(gin.Logger())
+	//router.Use(gin.Recovery())
 
 	// cors
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
-		AllowHeaders:     "*",
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"*"},
 		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
-	// basic auth
-	app.Use(basicauth.New(basicauth.Config{
-		Users: map[string]string{
-			util.GlobalConfig.Authentication.BasicUsername: util.GlobalConfig.Authentication.BasicPassword,
-		},
-	}))
+	// enable apm
+	//router.Use(apmgin.Middleware(router))
 
 	// swagger
-	app.Get("/swagger/*", fiberSwagger.WrapHandler)
-
-	// GET /api/register
-	app.Get("/api/*", func(c *fiber.Ctx) error {
-		msg := fmt.Sprintf("✋ %s", c.Params("*"))
-		return c.SendString(msg) // => ✋ register
+	docs.SwaggerInfo.BasePath = "/api"
+	router.GET("", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/api/swagger/index.html")
 	})
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	// GET /flights/LAX-SFO
-	app.Get("/flights/:from-:to", func(c *fiber.Ctx) error {
-		db, err := apmgorm.Open("postgres", "")
-		if err != nil {
-			log.Fatal(err)
-		}
+	// users API
+	userUsecase := users.ConstructUserUseCase(db)
+	users.ConstructUserHandler(router, userUsecase)
 
-		db = apmgorm.WithContext(c.Context(), db)
-		msg := fmt.Sprintf("💸 From: %s, To: %s", c.Params("from"), c.Params("to"))
-		return c.SendString(msg) // => 💸 From: LAX, To: SFO
-	})
+	// articles API
+	articleUsecase := articles.ConstructArticlesUseCase(db)
+	articles.ConstructArticlesHandler(router, articleUsecase)
 
-	// GET /dictionary.txt
-	app.Get("/:file.:ext", func(c *fiber.Ctx) error {
-		msg := fmt.Sprintf("📃 %s.%s", c.Params("file"), c.Params("ext"))
-		return c.SendString(msg) // => 📃 dictionary.txt
-	})
+	// create server
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", config.GlobalConfig.Server.Host, config.GlobalConfig.Server.Port),
+		Handler: router,
+	}
 
-	// GET /john/75
-	app.Get("/:name/:age/:gender?", func(c *fiber.Ctx) error {
-		msg := fmt.Sprintf("👴 %s is %s years old", c.Params("name"), c.Params("age"))
-		return c.SendString(msg) // => 👴 john is 75 years old
-	})
+	// bootstrap app
+	go func() {
+		log.Fatal(server.ListenAndServe())
+	}()
 
-	// GET /john
-	app.Get("/:name", func(c *fiber.Ctx) error {
-		msg := fmt.Sprintf("Hello, %s 👋!", c.Params("name"))
-		return c.SendString(msg) // => Hello john 👋!
-	})
+	// --- Graceful shutdown
+	// create channel to allow graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
 
-	log.Fatal(app.Listen(fmt.Sprintf("%s:%d", util.GlobalConfig.Server.Host, util.GlobalConfig.Server.Port)))
-}
+	// wait for termination signal
+	<-quit
+	log.Println("Shutdown Server ...")
 
-// login godoc
-// @Summary      Show an account
-// @Description  get string by ID
-// @Tags         accounts
-// @Accept       json
-// @Produce      json
-// @Param        id   path      int  true  "Account ID"
-// @Router       /accounts/{id} [get]
-func login() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
+	// gracefully shutdown app
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+
+	log.Println("Server exiting")
 }
