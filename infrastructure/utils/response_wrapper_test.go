@@ -5,14 +5,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/utils"
 )
 
 func TestWrapResponse(t *testing.T) {
 	result := utils.WrapResponse(http.StatusOK, "OK", nil)
-	assert.Equal(t, result.HttpStatus, http.StatusOK)
+	assert.Equal(t, http.StatusOK, result.HttpStatus)
 }
 
 func TestWriteResponse(t *testing.T) {
@@ -27,7 +28,7 @@ func TestWriteResponse(t *testing.T) {
 		Data:       nil,
 	})
 
-	assert.Equal(t, w.Result().StatusCode, http.StatusOK)
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 }
 
 func TestWriteAbortResponse(t *testing.T) {
@@ -42,5 +43,5 @@ func TestWriteAbortResponse(t *testing.T) {
 		Data:       nil,
 	})
 
-	assert.Equal(t, w.Result().StatusCode, http.StatusBadRequest)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }

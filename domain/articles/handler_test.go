@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
@@ -69,8 +69,8 @@ func (s *FindAllSuite) TestFindAllWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
 func (s *FindAllSuite) TestFindAllPositive() {
@@ -106,8 +106,8 @@ func (s *FindAllSuite) TestFindAllPositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
 func TestFindAllSuite(t *testing.T) {
@@ -162,8 +162,8 @@ func (s *GetSuite) TestGetWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
 func (s *GetSuite) TestGetPositive() {
@@ -200,8 +200,8 @@ func (s *GetSuite) TestGetPositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
 func TestGetSuite(t *testing.T) {
@@ -256,8 +256,8 @@ func (s *DeleteSuite) TestDeleteWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
 func (s *DeleteSuite) TestDeletePositive() {
@@ -294,8 +294,8 @@ func (s *DeleteSuite) TestDeletePositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
 func TestDeleteSuite(t *testing.T) {
@@ -350,8 +350,8 @@ func (s *CreateSuite) TestCreateWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
 func (s *CreateSuite) TestCreatePositive() {
@@ -396,8 +396,8 @@ func (s *CreateSuite) TestCreatePositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
 func TestCreateSuite(t *testing.T) {
@@ -452,8 +452,8 @@ func (s *SaveSuite) TestSaveWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
 func (s *SaveSuite) TestSavePositive() {
@@ -497,8 +497,8 @@ func (s *SaveSuite) TestSavePositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
 func TestSaveSuite(t *testing.T) {
@@ -530,8 +530,8 @@ func (s *InjectUserIdSuite) TestInjectUserIdWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusInternalServerError)
-	assert.Equal(s.T(), response["message"], "Can't get user from token")
+	assert.Equal(s.T(), http.StatusInternalServerError, w.Result().StatusCode)
+	assert.Equal(s.T(), "Can't get user from token", response["message"])
 }
 
 func (s *InjectUserIdSuite) TestInjectUserIdPositive() {

@@ -4,9 +4,15 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"database/sql"
 	"encoding/base64"
 	"encoding/pem"
 	"log"
+	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func GenerateRSAKeyPair() (string, string) {
@@ -40,4 +46,25 @@ func GenerateRSAKeyPair() (string, string) {
 	)
 
 	return base64.StdEncoding.EncodeToString(publicKeyPem), base64.StdEncoding.EncodeToString(privateKeyPem)
+}
+
+func SetupGormMock(t *testing.T) (*sql.DB, *gorm.DB, sqlmock.Sqlmock) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	dialector := postgres.New(postgres.Config{
+		DSN:                  "sqlmock_db_0",
+		DriverName:           "postgres",
+		Conn:                 db,
+		PreferSimpleProtocol: true,
+	})
+
+	dbgorm, err := gorm.Open(dialector, &gorm.Config{})
+	if err != nil {
+		t.Errorf("Failed to open gorm v2 db, got error: %v", err)
+	}
+
+	return db, dbgorm, mock
 }

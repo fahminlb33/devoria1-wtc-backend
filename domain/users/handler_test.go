@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
@@ -21,17 +21,17 @@ import (
 
 // --- Login
 
-type LoginSuite struct {
+type LoginHandlerSuite struct {
 	suite.Suite
 }
 
-func (s *LoginSuite) SetupSuite() {
+func (s *LoginHandlerSuite) SetupSuite() {
 	publicKey, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 }
 
-func (s *LoginSuite) TestLoginWithValidationError() {
+func (s *LoginHandlerSuite) TestLoginWithValidationError() {
 	// initialize gin
 	gin.SetMode(gin.TestMode)
 
@@ -55,11 +55,11 @@ func (s *LoginSuite) TestLoginWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
-func (s *LoginSuite) TestLoginPositive() {
+func (s *LoginHandlerSuite) TestLoginPositive() {
 	// initialize gin
 	gin.SetMode(gin.TestMode)
 
@@ -92,27 +92,27 @@ func (s *LoginSuite) TestLoginPositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
-func TestLoginSute(t *testing.T) {
-	suite.Run(t, new(LoginSuite))
+func TestLoginHandlerSuite(t *testing.T) {
+	suite.Run(t, new(LoginHandlerSuite))
 }
 
 // --- Register
 
-type RegisterSuite struct {
+type RegisterHandlerSuite struct {
 	suite.Suite
 }
 
-func (s *RegisterSuite) SetupSuite() {
+func (s *RegisterHandlerSuite) SetupSuite() {
 	publicKey, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 }
 
-func (s *RegisterSuite) TestRegisterWithValidationError() {
+func (s *RegisterHandlerSuite) TestRegisterWithValidationError() {
 	// initialize gin
 	gin.SetMode(gin.TestMode)
 
@@ -136,11 +136,11 @@ func (s *RegisterSuite) TestRegisterWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusBadRequest)
-	assert.Equal(s.T(), response["message"], "Validation failed")
+	assert.Equal(s.T(), http.StatusBadRequest, w.Result().StatusCode)
+	assert.Equal(s.T(), "Validation failed", response["message"])
 }
 
-func (s *RegisterSuite) TestRegisterPositive() {
+func (s *RegisterHandlerSuite) TestRegisterPositive() {
 	// initialize gin
 	gin.SetMode(gin.TestMode)
 
@@ -175,27 +175,27 @@ func (s *RegisterSuite) TestRegisterPositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
-func TestRegisterSute(t *testing.T) {
-	suite.Run(t, new(RegisterSuite))
+func TestRegisterHandlerSuite(t *testing.T) {
+	suite.Run(t, new(RegisterHandlerSuite))
 }
 
 // --- Profile
 
-type ProfileSuite struct {
+type ProfileHandlerSuite struct {
 	suite.Suite
 }
 
-func (s *ProfileSuite) SetupSuite() {
+func (s *ProfileHandlerSuite) SetupSuite() {
 	publicKey, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 }
 
-func (s *ProfileSuite) TestRegisterWithValidationError() {
+func (s *ProfileHandlerSuite) TestRegisterWithValidationError() {
 	// initialize gin
 	gin.SetMode(gin.TestMode)
 
@@ -219,11 +219,11 @@ func (s *ProfileSuite) TestRegisterWithValidationError() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusInternalServerError)
-	assert.Equal(s.T(), response["message"], "Can't get user from token")
+	assert.Equal(s.T(), http.StatusInternalServerError, w.Result().StatusCode)
+	assert.Equal(s.T(), "Can't get user from token", response["message"])
 }
 
-func (s *ProfileSuite) TestRegisterPositive() {
+func (s *ProfileHandlerSuite) TestRegisterPositive() {
 	// initialize gin
 	gin.SetMode(gin.TestMode)
 
@@ -264,10 +264,10 @@ func (s *ProfileSuite) TestRegisterPositive() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusOK)
-	assert.Equal(s.T(), response["message"], "Success")
+	assert.Equal(s.T(), http.StatusOK, w.Result().StatusCode)
+	assert.Equal(s.T(), "Success", response["message"])
 }
 
-func TestProfileSuite(t *testing.T) {
-	suite.Run(t, new(ProfileSuite))
+func TestProfileHandlerSuite(t *testing.T) {
+	suite.Run(t, new(ProfileHandlerSuite))
 }

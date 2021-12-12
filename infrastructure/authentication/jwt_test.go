@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/authentication"
-	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/config"
-	"github.com/fahminlb33/devoria1-wtc-backend/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/authentication"
+	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/config"
+	"github.com/fahminlb33/devoria1-wtc-backend/mocks"
 )
 
 // --- InitializeJwtAuth
@@ -100,7 +101,7 @@ func (s *JwtAuthMiddlewareSuite) TestJwtAuthMiddlewareWithoutHeader() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusUnauthorized)
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
 	assert.Equal(s.T(), "Missing authorization header", response["message"])
 }
 
@@ -146,7 +147,7 @@ func (s *JwtAuthMiddlewareSuite) TestJwtAuthMiddlewareWithInvalidToken() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusUnauthorized)
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
 	assert.Contains(s.T(), response["message"], "invalid")
 }
 
@@ -174,7 +175,7 @@ func (s *JwtAuthMiddlewareSuite) TestJwtAuthMiddlewareWithExpiredToken() {
 		s.T().Fatal(err)
 	}
 
-	assert.Equal(s.T(), w.Result().StatusCode, http.StatusUnauthorized)
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
 	assert.Contains(s.T(), response["message"], "expired")
 }
 
