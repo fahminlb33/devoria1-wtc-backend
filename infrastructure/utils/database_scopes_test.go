@@ -44,7 +44,7 @@ func TestPaginationScope(t *testing.T) {
 	mock.ExpectQuery("LIMIT 1").WillReturnRows(rows)
 
 	var entity TestingEntity
-	if err := gormdb.Scopes(utils.Pagination(1, 1)).Find(&entity).Error; err != nil {
+	if err := gormdb.Scopes(utils.Pagination(0, 1)).Find(&entity).Error; err != nil {
 		t.Errorf("Failed to query to gorm db, got error: %v", err)
 	}
 
