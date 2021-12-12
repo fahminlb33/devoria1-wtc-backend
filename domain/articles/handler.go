@@ -13,10 +13,9 @@ import (
 
 type ArticleHandler struct {
 	Usecase ArticleUseCase
-	jwtAuth authentication.IJwtAuth
 }
 
-func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase, jwtAuth authentication.IJwtAuth) {
+func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase, jwtAuth authentication.IJwtAuth) ArticleHandler {
 	handler := &ArticleHandler{
 		Usecase: usecase,
 	}
@@ -27,6 +26,8 @@ func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase, jwtAut
 	v1.PUT("", jwtAuth.JwtAuthMiddleware(), handler.Save)
 	v1.GET("/:id", jwtAuth.JwtAuthMiddleware(), handler.Get)
 	v1.DELETE("/:id", jwtAuth.JwtAuthMiddleware(), handler.Delete)
+
+	return *handler
 }
 
 // @Summary      Find all articles
@@ -48,7 +49,7 @@ func (u *ArticleHandler) FindAll(c *gin.Context) {
 		return
 	}
 
-	injectUserId(c, &model.UserId)
+	InjectUserId(c, &model.UserId)
 
 	result := u.Usecase.FindAll(c, model)
 	utils.WriteResponse(c, result)
@@ -71,7 +72,7 @@ func (u *ArticleHandler) Create(c *gin.Context) {
 		return
 	}
 
-	injectUserId(c, &model.UserId)
+	InjectUserId(c, &model.UserId)
 
 	result := u.Usecase.Create(c, model)
 	utils.WriteResponse(c, result)
@@ -94,7 +95,7 @@ func (u *ArticleHandler) Save(c *gin.Context) {
 		return
 	}
 
-	injectUserId(c, &model.UserId)
+	InjectUserId(c, &model.UserId)
 
 	result := u.Usecase.Save(c, model)
 	utils.WriteResponse(c, result)
@@ -116,7 +117,7 @@ func (u *ArticleHandler) Get(c *gin.Context) {
 		return
 	}
 
-	injectUserId(c, &model.UserId)
+	InjectUserId(c, &model.UserId)
 
 	result := u.Usecase.Get(c, model)
 	utils.WriteResponse(c, result)
@@ -138,13 +139,13 @@ func (u *ArticleHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	injectUserId(c, &model.UserId)
+	InjectUserId(c, &model.UserId)
 
 	result := u.Usecase.Delete(c, model)
 	utils.WriteResponse(c, result)
 }
 
-func injectUserId(c *gin.Context, userId *int) {
+func InjectUserId(c *gin.Context, userId *int) {
 	user, err := authentication.GetJwtUser(c)
 	if err != nil {
 		utils.WriteResponse(c, utils.WrapResponse(http.StatusInternalServerError, "Can't get user from token", nil))
