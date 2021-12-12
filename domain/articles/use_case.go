@@ -238,7 +238,7 @@ func (u *ArticleUseCaseImpl) Delete(c context.Context, model DeleteModel) (respo
 
 	// check whether the article is owned by the user
 	if author.Role != users.ADMIN && author.ID != article.Author.ID {
-		return utils.WrapResponse(http.StatusOK, "Article not found", nil)
+		return utils.WrapResponse(http.StatusForbidden, "Article not found", nil)
 	}
 
 	// delete article
