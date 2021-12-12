@@ -13,10 +13,10 @@ type Config struct {
 		Port int    `envconfig:"SERVER_PORT"`
 	}
 	Authentication struct {
-		BasicUsername  string `envconfig:"AUTH_BASIC_USERNAME"`
-		BasicPassword  string `envconfig:"AUTH_BASIC_PASSWORD"`
-		PrivateKeyPath string `envconfig:"AUTH_JWT_PRIVATE_KEY_PATH"`
-		PublicKeyPath  string `envconfig:"AUTH_JWT_PUBLIC_KEY_PATH"`
+		BasicUsername string `envconfig:"AUTH_BASIC_USERNAME"`
+		BasicPassword string `envconfig:"AUTH_BASIC_PASSWORD"`
+		PrivateKey    string `envconfig:"AUTH_JWT_PRIVATE_KEY"`
+		PublicKey     string `envconfig:"AUTH_JWT_PUBLIC_KEY"`
 	}
 	Database struct {
 		URI string `envconfig:"DB_URI"`

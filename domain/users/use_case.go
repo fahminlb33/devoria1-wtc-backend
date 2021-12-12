@@ -20,11 +20,13 @@ type UserUseCase interface {
 
 type UserUseCaseImpl struct {
 	Database *gorm.DB
+	JwtAuth  authentication.IJwtAuth
 }
 
-func ConstructUserUseCase(db *gorm.DB) UserUseCase {
+func ConstructUserUseCase(db *gorm.DB, jwtAuth authentication.IJwtAuth) UserUseCase {
 	return &UserUseCaseImpl{
 		Database: db,
+		JwtAuth:  jwtAuth,
 	}
 }
 
@@ -45,7 +47,7 @@ func (u *UserUseCaseImpl) Login(c context.Context, model LoginModel) (resp utils
 	}
 
 	// generate acccess token
-	accessToken, _ := authentication.Sign(strconv.Itoa(int(user.ID)), user.FirstName)
+	accessToken, _ := u.JwtAuth.Sign(strconv.Itoa(int(user.ID)), user.FirstName)
 	finalResponse := UserLoginDto{
 		Email:       user.Email,
 		FirstName:   user.FirstName,
@@ -80,7 +82,7 @@ func (u *UserUseCaseImpl) Register(c context.Context, model RegisterModel) (resp
 	db.Create(&user)
 
 	// generate acccess token
-	accessToken, _ := authentication.Sign(strconv.Itoa(int(user.ID)), user.FirstName)
+	accessToken, _ := u.JwtAuth.Sign(strconv.Itoa(int(user.ID)), user.FirstName)
 	finalResponse := UserLoginDto{
 		Email:       user.Email,
 		FirstName:   user.FirstName,
