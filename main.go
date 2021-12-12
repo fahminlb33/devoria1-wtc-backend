@@ -25,15 +25,19 @@ import (
 	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/database"
 )
 
-// @title MEWS API
-// @version 1.0
-// @description MEWS API for Devoria's WTC
-// @termsOfService http://swagger.io/terms/
-// @contact.name Fahmi Noor Fiqri
-// @license.name MIT License
-// @license.url http://www.opensource.org/licenses/MIT
-// @host :9000
-// @BasePath /
+// @title           MEWS API
+// @version         1.0
+// @description     MEWS API for Devoria's WTC
+// @termsOfService  http://swagger.io/terms/
+// @contact.name    Fahmi Noor Fiqri
+// @license.name    MIT License
+// @license.url     http://www.opensource.org/licenses/MIT
+// @host            :9000
+// @BasePath        /
+// @securityDefinitions.basic BasicAuth
+// @securityDefinitions.apikey JwtAuth
+// @in header
+// @name Authorization
 func main() {
 	// initialize services
 	config.LoadConfig()

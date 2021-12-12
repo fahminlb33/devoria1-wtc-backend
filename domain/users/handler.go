@@ -27,13 +27,14 @@ func ConstructUserHandler(router *gin.Engine, usecase UserUseCase) {
 }
 
 // login godoc
-// @Summary      Show an account
-// @Description  get string by ID
+// @Summary      Login
+// @Description  Authenticate a user to get access token
 // @Tags         accounts
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "Account ID"
+// @Param        body  body   string true "Login body"
 // @Router       /api/v1/user/login [post]
+// @Security     BasicAuth
 func (u *UserHandler) Login(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Login", "http")
 	defer span.End()
@@ -48,14 +49,14 @@ func (u *UserHandler) Login(c *gin.Context) {
 	utils.WriteResponse(c, result)
 }
 
-// login godoc
-// @Summary      Show an account
-// @Description  get string by ID
+// @Summary      Register new account
+// @Description  Register new account
 // @Tags         accounts
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "Account ID"
+// @Param        body  body   string true "Register body"
 // @Router       /api/v1/user/register [post]
+// @Security     BasicAuth
 func (u *UserHandler) Register(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Register", "http")
 	defer span.End()
@@ -70,14 +71,12 @@ func (u *UserHandler) Register(c *gin.Context) {
 	utils.WriteResponse(c, result)
 }
 
-// login godoc
-// @Summary      Show an account
-// @Description  get string by ID
+// @Summary      Get profile
+// @Description  Get detailed user profile
 // @Tags         accounts
-// @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "Account ID"
 // @Router       /api/v1/user/me [get]
+// @Security     JwtAuth
 func (u *UserHandler) Profile(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Profile", "http")
 	defer span.End()

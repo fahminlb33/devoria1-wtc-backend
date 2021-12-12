@@ -30,14 +30,15 @@ func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase) {
 	v1.DELETE("/:id", authentication.JwtAuthMiddleware(), handler.Delete)
 }
 
-// @Summary      Create article
-// @Description  Create single article
+// @Summary      Find all articles
+// @Description  Find all matching articles
 // @Tags         articles
 // @Produce      json
-// @Param        keyword   path      string  false  "Keyword in title or content"
-// @Param 	     page      path      int     false  "Pagination number"
-// @Param 	     limit     path      int     false  "Number of rows to be retrieved"
+// @Param        keyword  path   string  false  "Keyword to search"
+// @Param        page     path   int     false  "Page number"
+// @Param        limit    path   int     false  "Number of items per page"
 // @Router       /api/v1/articles/ [get]
+// @Security     JwtAuth
 func (u *ArticleHandler) FindAll(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "FindAll", "http")
 	defer span.End()
@@ -59,6 +60,7 @@ func (u *ArticleHandler) FindAll(c *gin.Context) {
 // @Tags         articles
 // @Accepts      json
 // @Produce      json
+// @Param        body  body   string true "Article body"
 // @Router       /api/v1/articles [post]
 func (u *ArticleHandler) Create(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Create", "http")
@@ -81,6 +83,7 @@ func (u *ArticleHandler) Create(c *gin.Context) {
 // @Tags         articles
 // @Accepts      json
 // @Produce      json
+// @Param        body  body   string true "Article body"
 // @Router       /api/v1/articles [put]
 func (u *ArticleHandler) Save(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Save", "http")
@@ -102,7 +105,7 @@ func (u *ArticleHandler) Save(c *gin.Context) {
 // @Description  Get single article
 // @Tags         articles
 // @Produce      json
-// @Param        id   path      int  true  "Article ID"
+// @Param        id  path  int  true  "Unique article ID"
 // @Router       /api/v1/articles/:id [get]
 func (u *ArticleHandler) Get(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Get", "http")
@@ -124,7 +127,7 @@ func (u *ArticleHandler) Get(c *gin.Context) {
 // @Description  Delete single article
 // @Tags         articles
 // @Produce      json
-// @Param        id   path      int  true  "Article ID"
+// @Param        id  path  int  true  "Unique article ID"
 // @Router       /api/v1/articles/:id [delete]
 func (u *ArticleHandler) Delete(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Delete", "http")
