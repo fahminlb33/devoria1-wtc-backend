@@ -20,6 +20,7 @@ It ain't much, but honest work :smile:
 - Integrated with Elastic APM
 - Using PostgreSQL with GORM
 - Docker support
+- Auto generated Swagger doc
 - Unit tests
 - Pretty much overkill coverage report lol
 
