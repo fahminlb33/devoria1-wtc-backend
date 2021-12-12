@@ -15,7 +15,7 @@ type UserHandler struct {
 	Usecase UserUseCase
 }
 
-func ConstructUserHandler(router *gin.Engine, usecase UserUseCase, jwtAuth authentication.IJwtAuth) {
+func ConstructUserHandler(router *gin.Engine, usecase UserUseCase, jwtAuth authentication.IJwtAuth) UserHandler {
 	handler := &UserHandler{
 		Usecase: usecase,
 	}
@@ -23,7 +23,9 @@ func ConstructUserHandler(router *gin.Engine, usecase UserUseCase, jwtAuth authe
 	v1 := router.Group("/api/v1/user")
 	v1.POST("/login", authentication.BasicAuthMiddleware(), handler.Login)
 	v1.POST("/register", authentication.BasicAuthMiddleware(), handler.Register)
-	v1.GET("/me", jwtAuth.JwtAuthMiddleware(), handler.Profile)
+	v1.GET("/me", jwtAuth.JwtAuthMiddleware(), handler.GetProfile)
+
+	return *handler
 }
 
 // login godoc
@@ -77,7 +79,7 @@ func (u *UserHandler) Register(c *gin.Context) {
 // @Produce      json
 // @Router       /api/v1/user/me [get]
 // @Security     JwtAuth
-func (u *UserHandler) Profile(c *gin.Context) {
+func (u *UserHandler) GetProfile(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Profile", "http")
 	defer span.End()
 
