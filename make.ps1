@@ -21,6 +21,14 @@ function coverage() {
     go tool cover -html=coverage/coverage -o coverage/coverage.html
 }
 
+function coverage_pretty() {
+    New-Item -Force -ItemType directory -Path coverage | Out-Null
+    $result = $(gocov test ./... | Out-String)
+    $result | gocov-xml > coverage/coverage.xml
+    $result | gocov-html > coverage/coverage.html
+    reportgenerator -reports:coverage/coverage.xml -targetdir:coverage/reportgen
+}
+
 function swagger() {
     swag init
 }
@@ -36,6 +44,7 @@ $commandRegistrations = @(
     "run",
     "test",
     "coverage",
+    "coverage_pretty",
     "swagger",
     "generate_keypair"
 );
@@ -46,6 +55,6 @@ if ($Null -ne $commandToExecute) {
 } else {
     Write-Host "No profile associated with the phrase: $($command).`n" -ForegroundColor Red
     Write-Output "Available commands:"
-    foreach ($entry in $commandRegistrations) { Write-Output "  $($entry.Command)" }
+    foreach ($entry in $commandRegistrations) { Write-Output "  $($entry)" }
     Write-Output ""
 }
