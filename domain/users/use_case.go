@@ -55,7 +55,7 @@ func (u *UserUseCaseImpl) Login(c context.Context, model LoginModel) (resp utils
 		AccessToken: accessToken,
 	}
 
-	return utils.WrapResponse(http.StatusCreated, "User registered", finalResponse)
+	return utils.WrapResponse(http.StatusOK, "Hello!", finalResponse)
 }
 
 func (u *UserUseCaseImpl) Register(c context.Context, model RegisterModel) (response utils.Response) {
