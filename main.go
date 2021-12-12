@@ -72,8 +72,8 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
+	// register custom validator
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		// register custom validator
 		v.RegisterValidation("isarticlepublishstatus", articles.IsArticlePublishStatus)
 	}
 
