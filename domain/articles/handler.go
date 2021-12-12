@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"go.elastic.co/apm"
 
 	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/authentication"
@@ -13,21 +12,21 @@ import (
 )
 
 type ArticleHandler struct {
-	Validator *validator.Validate
-	Usecase   ArticleUseCase
+	Usecase ArticleUseCase
+	jwtAuth authentication.IJwtAuth
 }
 
-func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase) {
+func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase, jwtAuth authentication.IJwtAuth) {
 	handler := &ArticleHandler{
 		Usecase: usecase,
 	}
 
 	v1 := router.Group("/api/v1/articles")
-	v1.GET("", authentication.JwtAuthMiddleware(), handler.FindAll)
-	v1.POST("", authentication.JwtAuthMiddleware(), handler.Create)
-	v1.PUT("", authentication.JwtAuthMiddleware(), handler.Save)
-	v1.GET("/:id", authentication.JwtAuthMiddleware(), handler.Get)
-	v1.DELETE("/:id", authentication.JwtAuthMiddleware(), handler.Delete)
+	v1.GET("", jwtAuth.JwtAuthMiddleware(), handler.FindAll)
+	v1.POST("", jwtAuth.JwtAuthMiddleware(), handler.Create)
+	v1.PUT("", jwtAuth.JwtAuthMiddleware(), handler.Save)
+	v1.GET("/:id", jwtAuth.JwtAuthMiddleware(), handler.Get)
+	v1.DELETE("/:id", jwtAuth.JwtAuthMiddleware(), handler.Delete)
 }
 
 // @Summary      Find all articles

@@ -3,8 +3,6 @@ package authentication
 import (
 	"crypto/rsa"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -17,10 +15,15 @@ import (
 	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/utils"
 )
 
-var (
-	_privateKey *rsa.PrivateKey
-	_publicKey  *rsa.PublicKey
-)
+type IJwtAuth interface {
+	Sign(userId string, username string) (tokenString string, err error)
+	JwtAuthMiddleware() gin.HandlerFunc
+}
+
+type JwtAuthImpl struct {
+	PrivateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
+}
 
 type JwtPayload struct {
 	jwt.StandardClaims
@@ -28,33 +31,25 @@ type JwtPayload struct {
 }
 
 // Load public-private key pair from file.
-func InitializeJwtAuth() {
-	privateKeyContents, privateKeyContentsError := ioutil.ReadFile(config.GlobalConfig.Authentication.PrivateKeyPath)
-	if privateKeyContentsError != nil {
-		log.Fatal("Error reading private key file: ", privateKeyContentsError)
+func ConstructJwtAuth() (*JwtAuthImpl, error) {
+	decodedPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(config.GlobalConfig.Authentication.PrivateKey))
+	if err != nil {
+		return nil, fmt.Errorf("can't parse private key: %v", err)
 	}
 
-	decodedPrivateKey, decodedPrivateKeyError := jwt.ParseRSAPrivateKeyFromPEM(privateKeyContents)
-	if decodedPrivateKeyError != nil {
-		log.Fatal("Error parsing private key: ", decodedPrivateKeyError)
+	decodedPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(config.GlobalConfig.Authentication.PublicKey))
+	if err != nil {
+		return nil, fmt.Errorf("can't parse public key: %v", err)
 	}
 
-	publicKeyContents, publicKeyContentsError := ioutil.ReadFile(config.GlobalConfig.Authentication.PublicKeyPath)
-	if publicKeyContentsError != nil {
-		log.Fatal("Error reading public key file: ", publicKeyContentsError)
-	}
-
-	decodedPublicKey, decodedPublicKeyError := jwt.ParseRSAPublicKeyFromPEM(publicKeyContents)
-	if decodedPublicKeyError != nil {
-		log.Fatal("Error parsing public key: ", decodedPublicKeyError)
-	}
-
-	_privateKey = decodedPrivateKey
-	_publicKey = decodedPublicKey
+	return &JwtAuthImpl{
+		PrivateKey: decodedPrivateKey,
+		PublicKey:  decodedPublicKey,
+	}, nil
 }
 
 // Sign will generate new jwt token.
-func Sign(userId string, username string) (tokenString string, err error) {
+func (u *JwtAuthImpl) Sign(userId string, username string) (tokenString string, err error) {
 	// create claims
 	var jwtPayload = make(jwt.MapClaims)
 	jwtPayload["aud"] = "DEVORIA"
@@ -68,10 +63,10 @@ func Sign(userId string, username string) (tokenString string, err error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwtPayload)
 
 	// return signed token
-	return token.SignedString(_privateKey)
+	return token.SignedString(u.PrivateKey)
 }
 
-func JwtAuthMiddleware() gin.HandlerFunc {
+func (u *JwtAuthImpl) JwtAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		span, _ := apm.StartSpan(c.Request.Context(), "JwtAuthMiddleware", "http")
 		defer span.End()
@@ -100,19 +95,13 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 			}
 
 			// Token validation success, return public key to validate with
-			return _publicKey, nil
+			return u.PublicKey, nil
 		})
 
 		// check if the decoding process has any errors
 		if err != nil {
 			utils.WriteAbortResponse(c, utils.WrapResponse(http.StatusUnauthorized, err.Error(), nil))
 			return
-		}
-
-		// check if the token has validation errors
-		jwtErrors, _ := err.(*jwt.ValidationError)
-		if jwtErrors != nil && jwtErrors.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
-			utils.WriteAbortResponse(c, utils.WrapResponse(http.StatusUnauthorized, "Token is expired or not valid yet", nil))
 		}
 
 		// decode token
@@ -137,7 +126,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 
 func GetJwtUser(c *gin.Context) (user *JwtPayload, err error) {
 	// check if the token is set
-	if _, exists := c.Get("JWT_AUTHENTICATED"); !exists {
+	if value, exists := c.Get("JWT_AUTHENTICATED"); !exists || !value.(bool) {
 		return nil, fmt.Errorf("JWT_AUTHENTICATED not found in context")
 	}
 

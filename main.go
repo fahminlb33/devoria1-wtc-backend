@@ -41,7 +41,12 @@ import (
 func main() {
 	// initialize services
 	config.LoadConfig()
-	authentication.InitializeJwtAuth()
+
+	// initialize JWT
+	jwtAuth, err := authentication.ConstructJwtAuth()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// open DB conection
 	db, err := database.Initialize()
@@ -92,12 +97,12 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// users API
-	userUsecase := users.ConstructUserUseCase(db)
-	users.ConstructUserHandler(router, userUsecase)
+	userUsecase := users.ConstructUserUseCase(db, jwtAuth)
+	users.ConstructUserHandler(router, userUsecase, jwtAuth)
 
 	// articles API
 	articleUsecase := articles.ConstructArticlesUseCase(db)
-	articles.ConstructArticlesHandler(router, articleUsecase)
+	articles.ConstructArticlesHandler(router, articleUsecase, jwtAuth)
 
 	// create server
 	server := &http.Server{

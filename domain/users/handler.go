@@ -15,7 +15,7 @@ type UserHandler struct {
 	Usecase UserUseCase
 }
 
-func ConstructUserHandler(router *gin.Engine, usecase UserUseCase) {
+func ConstructUserHandler(router *gin.Engine, usecase UserUseCase, jwtAuth authentication.IJwtAuth) {
 	handler := &UserHandler{
 		Usecase: usecase,
 	}
@@ -23,7 +23,7 @@ func ConstructUserHandler(router *gin.Engine, usecase UserUseCase) {
 	v1 := router.Group("/api/v1/user")
 	v1.POST("/login", authentication.BasicAuthMiddleware(), handler.Login)
 	v1.POST("/register", authentication.BasicAuthMiddleware(), handler.Register)
-	v1.GET("/me", authentication.JwtAuthMiddleware(), handler.Profile)
+	v1.GET("/me", jwtAuth.JwtAuthMiddleware(), handler.Profile)
 }
 
 // login godoc
