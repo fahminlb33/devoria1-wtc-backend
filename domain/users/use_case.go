@@ -74,6 +74,7 @@ func (u *UserUseCaseImpl) Register(c context.Context, model RegisterModel) (resp
 		Password:  &hashedPassword,
 		FirstName: model.FirstName,
 		LastName:  model.LastName,
+		Role:      CONTRIBUTOR,
 	}
 
 	db.Create(&user)
