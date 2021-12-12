@@ -14,7 +14,7 @@ type GetModel struct {
 
 type CreateModel struct {
 	UserId  int
-	Title   string               `json:"title" binding:"required,min=5,max=255`
+	Title   string               `json:"title" binding:"required,min=5,max=255"`
 	Content string               `json:"content" binding:"required,min=10"`
 	Slug    string               `json:"slug" binding:"required,min=5,max=255"`
 	Status  ArticlePublishStatus `json:"status" binding:"required,isarticlepublishstatus"`
