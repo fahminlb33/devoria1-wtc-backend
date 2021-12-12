@@ -1,13 +1,7 @@
 package authentication_test
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,44 +9,12 @@ import (
 
 	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/authentication"
 	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/config"
+	"github.com/fahminlb33/devoria1-wtc-backend/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
-
-func GenerateRSAKeyPair() (string, string) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Extract public component.
-	publicKey := privateKey.Public()
-
-	// Encode private key to PKCS#1 ASN.1 PEM.
-	privateKeyPem := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-		},
-	)
-
-	// Encode public key to PKCS#1 ASN.1 PEM.
-	publicKeyPacked, err := x509.MarshalPKIXPublicKey(publicKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	publicKeyPem := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PUBLIC KEY",
-			Bytes: publicKeyPacked,
-		},
-	)
-
-	return base64.StdEncoding.EncodeToString(publicKeyPem), base64.StdEncoding.EncodeToString(privateKeyPem)
-}
 
 // --- InitializeJwtAuth
 
@@ -61,7 +23,7 @@ type InitializeJwtAuthSuite struct {
 }
 
 func (s *InitializeJwtAuthSuite) TestInitializeJwtAuthPositive() {
-	publicKey, privateKey := GenerateRSAKeyPair()
+	publicKey, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 
@@ -71,7 +33,7 @@ func (s *InitializeJwtAuthSuite) TestInitializeJwtAuthPositive() {
 }
 
 func (s *InitializeJwtAuthSuite) TestInitializeJwtAuthInvalidPublicKey() {
-	_, privateKey := GenerateRSAKeyPair()
+	_, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = ""
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 
@@ -81,7 +43,7 @@ func (s *InitializeJwtAuthSuite) TestInitializeJwtAuthInvalidPublicKey() {
 }
 
 func (s *InitializeJwtAuthSuite) TestInitializeJwtAuthInvalidPrivateKey() {
-	publicKey, _ := GenerateRSAKeyPair()
+	publicKey, _ := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = ""
 
@@ -97,7 +59,7 @@ func TestInitializeJwtAuthSuite(t *testing.T) {
 // --- Sign
 
 func TestSign(t *testing.T) {
-	publicKey, privateKey := GenerateRSAKeyPair()
+	publicKey, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 
@@ -115,7 +77,7 @@ type JwtAuthMiddlewareSuite struct {
 }
 
 func (s *JwtAuthMiddlewareSuite) SetupSuite() {
-	publicKey, privateKey := GenerateRSAKeyPair()
+	publicKey, privateKey := mocks.GenerateRSAKeyPair()
 	config.GlobalConfig.Authentication.PublicKey = publicKey
 	config.GlobalConfig.Authentication.PrivateKey = privateKey
 }
