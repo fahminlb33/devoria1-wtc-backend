@@ -62,7 +62,7 @@ func TestLikeScope(t *testing.T) {
 	mock.ExpectQuery("LIKE ?").WithArgs("%meong%").WillReturnRows(rows)
 
 	var entity TestingEntity
-	if err := gormdb.Scopes(utils.Like("content", "meong")).Find(&entity).Error; err != nil {
+	if err := gormdb.Scopes(utils.Like([]string{"content"}, "meong")).Find(&entity).Error; err != nil {
 		t.Errorf("Failed to query to gorm db, got error: %v", err)
 	}
 

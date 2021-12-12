@@ -3,6 +3,7 @@ package articles
 import (
 	"context"
 	"errors"
+	"math"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -48,7 +49,7 @@ func (u *ArticleUseCaseImpl) FindAll(c context.Context, model FindAllModel) (res
 
 	// filter by title and content
 	if len(model.Keyword) > 0 {
-		searchChain = searchChain.Scopes(utils.Like("title", model.Keyword), utils.Like("content", model.Keyword))
+		searchChain = searchChain.Scopes(utils.Like([]string{"title", "slug", "content"}, model.Keyword))
 	}
 
 	// filter by author
@@ -58,14 +59,40 @@ func (u *ArticleUseCaseImpl) FindAll(c context.Context, model FindAllModel) (res
 		searchChain.Find(&articles)
 	}
 
-	// create response
-	finalResponse := []ArticleItemDto{}
+	// calculate total
+	var total int64
+
+	// create count query based on search chain
+	countChain := db.Model(&Article{})
+	if len(model.Keyword) > 0 {
+		countChain = searchChain.Scopes(utils.Like([]string{"title", "slug", "content"}, model.Keyword))
+	}
+
+	countResult := countChain.Count(&total)
+
+	if countResult.Error != nil {
+		return utils.WrapResponse(http.StatusConflict, "Can't count articles", nil)
+	}
+
+	// project to DTO
+	rows := []ArticleItemDto{}
 	for _, article := range articles {
-		finalResponse = append(finalResponse, ArticleItemDto{
+		rows = append(rows, ArticleItemDto{
 			Title:  article.Title,
 			Slug:   article.Slug,
 			Status: article.Status,
 		})
+	}
+
+	// create response
+	finalResponse := map[string]interface{}{
+		"page_meta": map[string]interface{}{
+			"currentPage":     model.Page,
+			"totalPage":       math.Ceil(float64(total) / float64(model.Limit)),
+			"totalData":       total,
+			"totalDataOnPage": len(rows),
+		},
+		"rows": rows,
 	}
 
 	return utils.WrapResponse(http.StatusOK, "OK", finalResponse)
@@ -80,7 +107,12 @@ func (u *ArticleUseCaseImpl) Get(c context.Context, model GetModel) (response ut
 
 	// get the article
 	var article Article
-	db.Preload(clause.Associations).First(&article, model.ArticleId)
+	result := db.Preload(clause.Associations).First(&article, model.ArticleId)
+
+	// check whether the record is found
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return utils.WrapResponse(http.StatusOK, "Article not found", nil)
+	}
 
 	// check whether the article is owned by the user
 	if author.Role != users.ADMIN && author.ID != article.Author.ID {
@@ -117,7 +149,13 @@ func (u *ArticleUseCaseImpl) Create(c context.Context, model CreateModel) (respo
 		Author:  author,
 	}
 
-	db.Create(&article)
+	// create article
+	result := db.Create(&article)
+
+	// check whether the article is created
+	if result.Error != nil {
+		return utils.WrapResponse(http.StatusConflict, "Can't create article", result.Error.Error())
+	}
 
 	// create response
 	finalResponse := ArticleDto{
@@ -168,7 +206,13 @@ func (u *ArticleUseCaseImpl) Save(c context.Context, model SaveModel) utils.Resp
 		article.Status = model.Status
 	}
 
-	db.Save(&article)
+	// save article
+	result = db.Save(&article)
+
+	// check whether the article is saved
+	if result.Error != nil {
+		return utils.WrapResponse(http.StatusConflict, "Can't save article", result.Error.Error())
+	}
 
 	return utils.WrapResponse(http.StatusOK, "OK", nil)
 }
@@ -182,7 +226,12 @@ func (u *ArticleUseCaseImpl) Delete(c context.Context, model DeleteModel) (respo
 
 	// get the article
 	var article Article
-	db.Preload(clause.Associations).First(&article, model.ArticleId)
+	result := db.Preload(clause.Associations).First(&article, model.ArticleId)
+
+	// check whether the record is found
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return utils.WrapResponse(http.StatusOK, "Article not found", nil)
+	}
 
 	// check whether the article is owned by the user
 	if author.Role != users.ADMIN && author.ID != article.Author.ID {
@@ -190,7 +239,12 @@ func (u *ArticleUseCaseImpl) Delete(c context.Context, model DeleteModel) (respo
 	}
 
 	// delete article
-	db.Delete(&article)
+	result = db.Delete(&article)
+
+	// check whether the article is deleted
+	if result.Error != nil {
+		return utils.WrapResponse(http.StatusConflict, "Can't delete article", result.Error.Error())
+	}
 
 	return utils.WrapResponse(http.StatusOK, "OK", nil)
 }
