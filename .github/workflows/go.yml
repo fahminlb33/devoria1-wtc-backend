@@ -18,6 +18,9 @@ jobs:
       with:
         go-version: 1.17
 
+    - name: Download modules
+      run: go mod download
+
     - name: Install Swaggo
       run: go install github.com/swaggo/swag/cmd/swag@latest
 
