@@ -78,9 +78,11 @@ func (u *ArticleUseCaseImpl) FindAll(c context.Context, model FindAllModel) (res
 	rows := []ArticleItemDto{}
 	for _, article := range articles {
 		rows = append(rows, ArticleItemDto{
-			Title:  article.Title,
-			Slug:   article.Slug,
-			Status: article.Status,
+			ID:       article.ID,
+			AuthorId: article.Author.ID,
+			Title:    article.Title,
+			Slug:     article.Slug,
+			Status:   article.Status,
 		})
 	}
 
@@ -122,6 +124,7 @@ func (u *ArticleUseCaseImpl) Get(c context.Context, model GetModel) (response ut
 	// create response
 	finalResponse := ArticleDto{
 		ID:        article.ID,
+		AuthorId:  article.Author.ID,
 		Title:     article.Title,
 		Content:   article.Content,
 		Slug:      article.Slug,

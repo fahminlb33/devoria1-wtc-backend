@@ -4,6 +4,7 @@ import "time"
 
 type ArticleDto struct {
 	ID        uint                 `json:"id"`
+	AuthorId  uint                 `json:"authorId"`
 	Title     string               `json:"title"`
 	Content   string               `json:"content"`
 	Slug      string               `json:"slug"`
@@ -14,6 +15,7 @@ type ArticleDto struct {
 
 type ArticleItemDto struct {
 	ID        uint                 `json:"id"`
+	AuthorId  uint                 `json:"authorId"`
 	Title     string               `json:"title"`
 	Slug      string               `json:"slug"`
 	Status    ArticlePublishStatus `json:"status"`
