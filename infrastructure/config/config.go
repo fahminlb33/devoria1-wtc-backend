@@ -23,7 +23,7 @@ type Config struct {
 	}
 }
 
-var GlobalConfig Config
+var GlobalConfig Config = Config{}
 
 func LoadConfig() {
 	godotenvErr := godotenv.Load()
