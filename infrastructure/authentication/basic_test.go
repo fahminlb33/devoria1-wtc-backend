@@ -10,9 +10,16 @@ import (
 	"github.com/fahminlb33/devoria1-wtc-backend/infrastructure/config"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestBasicAuthWithoutAuthHeader(t *testing.T) {
+// --- BasicAuthMiddleware
+
+type BasicAuthMiddlewareSuite struct {
+	suite.Suite
+}
+
+func (s *BasicAuthMiddlewareSuite) TestBasicAuthWithoutAuthHeader() {
 	gin.SetMode(gin.TestMode)
 
 	w := httptest.NewRecorder()
@@ -24,15 +31,15 @@ func TestBasicAuthWithoutAuthHeader(t *testing.T) {
 	var response gin.H
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
-		t.Fatal(err)
+		s.T().Fatal(err)
 	}
 
-	assert.Equal(t, w.Result().StatusCode, http.StatusUnauthorized)
-	assert.Equal(t, w.Result().Header.Get("WWW-Authenticate"), "Basic realm=DEVORIA")
-	assert.Equal(t, "Missing authorization header", response["message"])
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
+	assert.Equal(s.T(), "Basic realm=DEVORIA", w.Result().Header.Get("WWW-Authenticate"))
+	assert.Equal(s.T(), "Missing authorization header", response["message"])
 }
 
-func TestBasicAuthWithInvalidAuthHeader(t *testing.T) {
+func (s *BasicAuthMiddlewareSuite) TestBasicAuthWithInvalidAuthHeader() {
 	gin.SetMode(gin.TestMode)
 
 	w := httptest.NewRecorder()
@@ -47,15 +54,15 @@ func TestBasicAuthWithInvalidAuthHeader(t *testing.T) {
 	var response gin.H
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
-		t.Fatal(err)
+		s.T().Fatal(err)
 	}
 
-	assert.Equal(t, w.Result().StatusCode, http.StatusUnauthorized)
-	assert.Equal(t, w.Result().Header.Get("WWW-Authenticate"), "Basic realm=DEVORIA")
-	assert.Equal(t, "Authorization header is not Basic", response["message"])
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
+	assert.Equal(s.T(), "Basic realm=DEVORIA", w.Result().Header.Get("WWW-Authenticate"))
+	assert.Equal(s.T(), "Authorization header is not Basic", response["message"])
 }
 
-func TestBasicAuthWithInvalidAuthValue(t *testing.T) {
+func (s *BasicAuthMiddlewareSuite) TestBasicAuthWithInvalidAuthValue() {
 	gin.SetMode(gin.TestMode)
 
 	w := httptest.NewRecorder()
@@ -70,15 +77,15 @@ func TestBasicAuthWithInvalidAuthValue(t *testing.T) {
 	var response gin.H
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
-		t.Fatal(err)
+		s.T().Fatal(err)
 	}
 
-	assert.Equal(t, w.Result().StatusCode, http.StatusUnauthorized)
-	assert.Equal(t, w.Result().Header.Get("WWW-Authenticate"), "Basic realm=DEVORIA")
-	assert.Contains(t, response["message"], "illegal base64 data")
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
+	assert.Equal(s.T(), "Basic realm=DEVORIA", w.Result().Header.Get("WWW-Authenticate"))
+	assert.Contains(s.T(), response["message"], "illegal base64 data")
 }
 
-func TestBasicAuthWithInvalidCredentials(t *testing.T) {
+func (s *BasicAuthMiddlewareSuite) TestBasicAuthWithInvalidCredentials() {
 	gin.SetMode(gin.TestMode)
 
 	w := httptest.NewRecorder()
@@ -96,15 +103,15 @@ func TestBasicAuthWithInvalidCredentials(t *testing.T) {
 	var response gin.H
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
-		t.Fatal(err)
+		s.T().Fatal(err)
 	}
 
-	assert.Equal(t, w.Result().StatusCode, http.StatusUnauthorized)
-	assert.Equal(t, w.Result().Header.Get("WWW-Authenticate"), "Basic realm=DEVORIA")
-	assert.Contains(t, "Invalid credentials", response["message"])
+	assert.Equal(s.T(), http.StatusUnauthorized, w.Result().StatusCode)
+	assert.Equal(s.T(), "Basic realm=DEVORIA", w.Result().Header.Get("WWW-Authenticate"))
+	assert.Contains(s.T(), response["message"], "Invalid credentials")
 }
 
-func TestBasicAuthPositive(t *testing.T) {
+func (s *BasicAuthMiddlewareSuite) TestBasicAuthPositive() {
 	gin.SetMode(gin.TestMode)
 
 	w := httptest.NewRecorder()
@@ -119,5 +126,9 @@ func TestBasicAuthPositive(t *testing.T) {
 
 	authentication.BasicAuthMiddleware()(c)
 
-	assert.True(t, c.GetBool("BASIC_AUTHENTICATED"))
+	assert.True(s.T(), c.GetBool("BASIC_AUTHENTICATED"))
+}
+
+func TestBasicAuthMiddlewareSuite(t *testing.T) {
+	suite.Run(t, new(BasicAuthMiddlewareSuite))
 }
