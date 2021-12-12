@@ -13,7 +13,7 @@ const (
 
 type User struct {
 	gorm.Model
-	Email     string   `gorm:"uniqueIndex,size:255"`
+	Email     string   `gorm:"size:255;not null;uniqueIndex:idx_email"`
 	Password  *string  `gorm:"size:255;not null"`
 	FirstName string   `gorm:"size:255;not null"`
 	LastName  string   `gorm:"size:255;not null"`
