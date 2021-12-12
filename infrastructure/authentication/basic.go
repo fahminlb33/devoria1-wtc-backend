@@ -21,14 +21,14 @@ func BasicAuthMiddleware() gin.HandlerFunc {
 		authorizationHeader := c.Request.Header.Get("Authorization")
 		if authorizationHeader == "" {
 			c.Header("WWW-Authenticate", "Basic realm=DEVORIA")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing authorization header"})
+			utils.WriteAbortResponse(c, utils.WrapResponse(http.StatusUnauthorized, "Missing authorization header", nil))
 			return
 		}
 
 		// check if the authentication method is Basic
 		if !strings.HasPrefix(authorizationHeader, "Basic ") {
 			c.Header("WWW-Authenticate", "Basic realm=DEVORIA")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is not Bearer"})
+			utils.WriteAbortResponse(c, utils.WrapResponse(http.StatusUnauthorized, "Authorization header is not Basic", nil))
 			return
 		}
 
