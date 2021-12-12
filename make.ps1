@@ -7,6 +7,10 @@ param(
 # Initialization
 $ErrorActionPreference = "Stop"
 
+function build() {
+    go build main.go
+}
+
 function run() {
     go run main.go
 }
@@ -17,16 +21,16 @@ function test() {
 
 function coverage() {
     New-Item -Force -ItemType directory -Path coverage | Out-Null
-    go test -v -covermode=atomic -coverprofile coverage/coverage ./...
-    go tool cover -html=coverage/coverage -o coverage/coverage.html
+    go test -v -covermode=atomic -coverprofile coverage/coverage.out ./...
+    go tool cover -html="coverage/coverage.out" -o coverage/coverage.html
 }
 
 function coverage_pretty() {
     New-Item -Force -ItemType directory -Path coverage | Out-Null
     $result = $(gocov test ./... | Out-String)
-    $result | gocov-xml > coverage/coverage.xml
-    $result | gocov-html > coverage/coverage.html
-    reportgenerator -reports:coverage/coverage.xml -targetdir:coverage/reportgen
+    $result | gocov-xml > coverage/coverage-gocov.xml
+    $result | gocov-html > coverage/coverage-gocov.html
+    reportgenerator -reports:coverage/coverage-gocov.xml -targetdir:coverage/reportgen
 }
 
 function swagger() {
@@ -41,6 +45,7 @@ function generate_keypair() {
 
 # Main Entry Point
 $commandRegistrations = @(
+    "build",
     "run",
     "test",
     "coverage",
