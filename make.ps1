@@ -12,12 +12,12 @@ function run() {
 }
 
 function test() {
-    go test
+    go test -v ./...
 }
 
 function coverage() {
     New-Item -Force -ItemType directory -Path coverage | Out-Null
-    go test -v -race -covermode=atomic -coverprofile coverage/coverage ./...
+    go test -v -covermode=atomic -coverprofile coverage/coverage ./...
     go tool cover -html=coverage/coverage -o coverage/coverage.html
 }
 
