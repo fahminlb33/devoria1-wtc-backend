@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -26,13 +24,6 @@ type Config struct {
 var GlobalConfig Config = Config{}
 
 func LoadConfig() {
-	godotenvErr := godotenv.Load()
-	if godotenvErr != nil {
-		log.Fatal("Error loading .env file", godotenvErr)
-	}
-
-	envconfigErr := envconfig.Process("", &GlobalConfig)
-	if envconfigErr != nil {
-		log.Fatal("Error decoding config from environment variables", envconfigErr)
-	}
+	godotenv.Load()
+	envconfig.Process("", &GlobalConfig)
 }
