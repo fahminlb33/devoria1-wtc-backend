@@ -39,6 +39,9 @@ func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase) {
 // @Param 	     limit     path      int     false  "Number of rows to be retrieved"
 // @Router       /api/v1/articles/ [get]
 func (u *ArticleHandler) FindAll(c *gin.Context) {
+	span, _ := apm.StartSpan(c.Request.Context(), "FindAll", "http")
+	defer span.End()
+
 	var model FindAllModel
 	if err := c.ShouldBindQuery(&model); err != nil {
 		utils.WriteResponse(c, utils.WrapResponse(http.StatusBadRequest, "Validation failed", err.Error()))
