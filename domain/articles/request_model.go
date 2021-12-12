@@ -3,8 +3,8 @@ package articles
 type FindAllModel struct {
 	UserId  int
 	Keyword string `form:"keyword"`
-	Page    int    `form:"page" binding:"omitempty,numeric"`
-	Limit   int    `form:"limit" binding:"omitempty,numeric"`
+	Page    int    `form:"page" binding:"omitempty,numeric,min=1"`
+	Limit   int    `form:"limit" binding:"omitempty,numeric,min=1"`
 }
 
 type CreateModel struct {

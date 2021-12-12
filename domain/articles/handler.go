@@ -42,7 +42,7 @@ func (u *ArticleHandler) FindAll(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "FindAll", "http")
 	defer span.End()
 
-	var model FindAllModel
+	model := FindAllModel{Page: 1, Limit: 10}
 	if err := c.ShouldBindQuery(&model); err != nil {
 		utils.WriteResponse(c, utils.WrapResponse(http.StatusBadRequest, "Validation failed", err.Error()))
 		return
