@@ -8,7 +8,11 @@ RUN go mod download
 
 ADD . /app
 
-RUN go build -o main .
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+RUN swag init
+
+RUN go build -o main main.go
 
 EXPOSE 9000
 

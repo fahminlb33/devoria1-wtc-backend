@@ -19,6 +19,9 @@ type Config struct {
 	Database struct {
 		URI string `envconfig:"DB_URI"`
 	}
+	Apm struct {
+		Active bool `envconfig:"ELASTIC_APM_ACTIVE" default:"false"`
+	}
 }
 
 var GlobalConfig Config = Config{}

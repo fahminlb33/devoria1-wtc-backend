@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"go.elastic.co/apm/module/apmgin"
 
 	docs "github.com/fahminlb33/devoria1-wtc-backend/docs"
 	swaggerfiles "github.com/swaggo/files"
@@ -69,7 +70,7 @@ func main() {
 	router := gin.New()
 
 	router.Use(gin.Logger())
-	//router.Use(gin.Recovery())
+	router.Use(gin.Recovery())
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		// register custom validator
@@ -86,8 +87,10 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// enable apm
-	//router.Use(apmgin.Middleware(router))
+	// setup apm
+	if config.GlobalConfig.Apm.Active {
+		router.Use(apmgin.Middleware(router))
+	}
 
 	// swagger
 	docs.SwaggerInfo.BasePath = "/api"

@@ -1,5 +1,17 @@
 version: "3.9"
 
+# --- app volumes
+volumes:
+  volume_es:
+    driver: local
+  volume_postgres:
+    driver: local
+
+# --- app networks
+networks:
+  network_main:
+    driver: bridge
+
 # --- app services
 services:
   # elasticsearch node
@@ -29,6 +41,7 @@ services:
       - volume_es:/usr/share/elasticsearch/data
     networks:
       - network_main
+
   # elastic apm server
   apm:
     image: docker.elastic.co/apm/apm-server:7.15.2
@@ -48,6 +61,7 @@ services:
         -E output.elasticsearch.password=password
     networks:
       - network_main
+
   # kibana dashboard
   kibana:
     image: docker.elastic.co/kibana/kibana:7.15.2
@@ -63,19 +77,21 @@ services:
       ELASTICSEARCH_PASSWORD: password
     networks:
       - network_main
+
   # postgresql
-  postgresql:
+  db:
     image: postgres
-    restart: always
     environment:
-      POSTGRES_USER: fahmi
-      POSTGRES_PASSWORD: fahmi
-      POSTGRES_DB: devoria
+      POSTGRES_PASSWORD: fahmi12345678
     volumes:
       - volume_postgres:/var/lib/postgresql/data
+    networks:
+      - network_main
+
   # backend service
   backend:
     build: .
+    command: ["./wait-for-it.sh", "db:5432", "--", "/app/main"]
     depends_on: 
       - elasticsearch
       - apm
@@ -83,20 +99,7 @@ services:
       - postgresql
     ports:
       - 9000:9000
-    environment:
-      POSTGRESQL_URI: postgres://fahmi:fahmi@postgresql:5432/devoria
-      DEVELOP_IN_DOCKER_COMPOSE: true
+    env_file:
+      - .docker.env
     networks:
       - network_main
-
-# --- app volumes
-volumes:
-  volume_es:
-    driver: local
-  volume_postgres:
-    driver: local
-
-# --- app networks
-networks:
-  network_main:
-    driver: bridge
