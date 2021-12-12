@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"log"
@@ -50,7 +51,7 @@ func GenerateRSAKeyPair() (string, string) {
 		},
 	)
 
-	return string(publicKeyPem), string(privateKeyPem)
+	return base64.StdEncoding.EncodeToString(publicKeyPem), base64.StdEncoding.EncodeToString(privateKeyPem)
 }
 
 // --- InitializeJwtAuth

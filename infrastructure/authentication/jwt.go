@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"crypto/rsa"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -30,14 +31,16 @@ type JwtPayload struct {
 	Username string `json:"username,omitempty"`
 }
 
-// Load public-private key pair from file.
+// Load public-private key pair from env
 func ConstructJwtAuth() (*JwtAuthImpl, error) {
-	decodedPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(config.GlobalConfig.Authentication.PrivateKey))
+	privateKeyContent, _ := base64.StdEncoding.DecodeString(config.GlobalConfig.Authentication.PrivateKey)
+	decodedPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyContent)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse private key: %v", err)
 	}
 
-	decodedPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(config.GlobalConfig.Authentication.PublicKey))
+	publicKeyContent, _ := base64.StdEncoding.DecodeString(config.GlobalConfig.Authentication.PublicKey)
+	decodedPublicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyContent)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse public key: %v", err)
 	}
