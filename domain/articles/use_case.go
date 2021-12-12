@@ -2,6 +2,7 @@ package articles
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -38,7 +39,11 @@ func (u *ArticleUseCaseImpl) FindAll(c context.Context, model FindAllModel) (res
 
 	// get the article
 	var articles []Article
-	db.Preload(clause.Associations).Where("author_id = ?", model.UserId).Find(&articles)
+	if author.Role == users.CONTRIBUTOR {
+		db.Preload(clause.Associations).Find(&articles, "author_id = ?", model.UserId)
+	} else {
+		db.Preload(clause.Associations).Find(&articles)
+	}
 
 	// create response
 	finalResponse := []ArticleItemDto{}
@@ -65,8 +70,8 @@ func (u *ArticleUseCaseImpl) Get(c context.Context, model GetModel) (response ut
 	db.Preload(clause.Associations).First(&article, model.ArticleId)
 
 	// check whether the article is owned by the user
-	if author.ID != article.Author.ID {
-		return utils.WrapResponse(http.StatusOK, "Article not found", nil)
+	if author.Role != users.ADMIN && author.ID != article.Author.ID {
+		return utils.WrapResponse(http.StatusForbidden, "Article not found", nil)
 	}
 
 	// create response
@@ -115,8 +120,44 @@ func (u *ArticleUseCaseImpl) Create(c context.Context, model CreateModel) (respo
 	return utils.WrapResponse(http.StatusCreated, "Article created", finalResponse)
 }
 
-func (u *ArticleUseCaseImpl) Save(c context.Context, model SaveModel) (response utils.Response) {
-	return
+func (u *ArticleUseCaseImpl) Save(c context.Context, model SaveModel) utils.Response {
+	db := u.Database.WithContext(c)
+
+	// get the author
+	var author users.User
+	db.First(&author, model.UserId)
+
+	// get the article
+	var article Article
+	result := db.Preload(clause.Associations).First(&article, model.ArticleId)
+
+	// check whether the record is found
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return utils.WrapResponse(http.StatusOK, "Article not found", nil)
+	}
+
+	// check whether the article is owned by the user
+	if author.Role != users.ADMIN && author.ID != article.Author.ID {
+		return utils.WrapResponse(http.StatusForbidden, "Article not found", nil)
+	}
+
+	// update article
+	if len(model.Title) > 0 {
+		article.Title = model.Title
+	}
+	if len(model.Content) > 0 {
+		article.Content = model.Content
+	}
+	if len(model.Slug) > 0 {
+		article.Slug = model.Slug
+	}
+	if len(model.Status) > 0 {
+		article.Status = model.Status
+	}
+
+	db.Save(&article)
+
+	return utils.WrapResponse(http.StatusOK, "OK", nil)
 }
 
 func (u *ArticleUseCaseImpl) Delete(c context.Context, model DeleteModel) (response utils.Response) {
@@ -131,7 +172,7 @@ func (u *ArticleUseCaseImpl) Delete(c context.Context, model DeleteModel) (respo
 	db.Preload(clause.Associations).First(&article, model.ArticleId)
 
 	// check whether the article is owned by the user
-	if author.ID != article.Author.ID {
+	if author.Role != users.ADMIN && author.ID != article.Author.ID {
 		return utils.WrapResponse(http.StatusOK, "Article not found", nil)
 	}
 

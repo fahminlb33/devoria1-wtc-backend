@@ -9,7 +9,7 @@ type ArticleDto struct {
 	Slug      string               `json:"slug"`
 	Status    ArticlePublishStatus `json:"status"`
 	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"lastModifiedAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
 }
 
 type ArticleItemDto struct {
@@ -18,5 +18,5 @@ type ArticleItemDto struct {
 	Slug      string               `json:"slug"`
 	Status    ArticlePublishStatus `json:"status"`
 	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"lastModifiedAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
 }

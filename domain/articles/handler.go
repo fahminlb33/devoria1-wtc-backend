@@ -1,7 +1,6 @@
 package articles
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -26,8 +25,8 @@ func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase) {
 	v1 := router.Group("/api/v1/articles")
 	v1.GET("", authentication.JwtAuthMiddleware(), handler.FindAll)
 	v1.POST("", authentication.JwtAuthMiddleware(), handler.Create)
-	v1.PUT("", authentication.JwtAuthMiddleware(), handler.Get)
-	v1.GET("/:id", authentication.JwtAuthMiddleware(), handler.Save)
+	v1.PUT("", authentication.JwtAuthMiddleware(), handler.Save)
+	v1.GET("/:id", authentication.JwtAuthMiddleware(), handler.Get)
 	v1.DELETE("/:id", authentication.JwtAuthMiddleware(), handler.Delete)
 }
 
@@ -40,22 +39,13 @@ func ConstructArticlesHandler(router *gin.Engine, usecase ArticleUseCase) {
 // @Param 	     limit     path      int     false  "Number of rows to be retrieved"
 // @Router       /api/v1/articles/ [get]
 func (u *ArticleHandler) FindAll(c *gin.Context) {
-	user, err := authentication.GetJwtUser(c)
-	if err != nil {
-		utils.WriteResponse(c, utils.WrapResponse(http.StatusConflict, "Can't get user from token", nil))
-		return
-	}
-
 	var model FindAllModel
 	if err := c.ShouldBindQuery(&model); err != nil {
 		utils.WriteResponse(c, utils.WrapResponse(http.StatusBadRequest, "Validation failed", err.Error()))
 		return
 	}
 
-	userId, _ := strconv.Atoi(user.Id)
-	model.UserId = userId
-
-	log.Print(model)
+	injectUserId(c, &model.UserId)
 
 	result := u.Usecase.FindAll(c, model)
 	utils.WriteResponse(c, result)
@@ -71,20 +61,13 @@ func (u *ArticleHandler) Create(c *gin.Context) {
 	span, _ := apm.StartSpan(c.Request.Context(), "Create", "http")
 	defer span.End()
 
-	user, err := authentication.GetJwtUser(c)
-	if err != nil {
-		utils.WriteResponse(c, utils.WrapResponse(http.StatusInternalServerError, "Can't get user from token", nil))
-		return
-	}
-
 	var model CreateModel
 	if err := c.ShouldBindJSON(&model); err != nil {
 		utils.WriteResponse(c, utils.WrapResponse(http.StatusBadRequest, "Validation failed", err.Error()))
 		return
 	}
 
-	userId, _ := strconv.Atoi(user.Id)
-	model.UserId = userId
+	injectUserId(c, &model.UserId)
 
 	result := u.Usecase.Create(c, model)
 	utils.WriteResponse(c, result)
@@ -106,6 +89,8 @@ func (u *ArticleHandler) Save(c *gin.Context) {
 		return
 	}
 
+	injectUserId(c, &model.UserId)
+
 	result := u.Usecase.Save(c, model)
 	utils.WriteResponse(c, result)
 }
@@ -125,6 +110,8 @@ func (u *ArticleHandler) Get(c *gin.Context) {
 		utils.WriteResponse(c, utils.WrapResponse(http.StatusBadRequest, "Validation failed", err.Error()))
 		return
 	}
+
+	injectUserId(c, &model.UserId)
 
 	result := u.Usecase.Get(c, model)
 	utils.WriteResponse(c, result)
@@ -146,6 +133,19 @@ func (u *ArticleHandler) Delete(c *gin.Context) {
 		return
 	}
 
+	injectUserId(c, &model.UserId)
+
 	result := u.Usecase.Delete(c, model)
 	utils.WriteResponse(c, result)
+}
+
+func injectUserId(c *gin.Context, userId *int) {
+	user, err := authentication.GetJwtUser(c)
+	if err != nil {
+		utils.WriteResponse(c, utils.WrapResponse(http.StatusInternalServerError, "Can't get user from token", nil))
+		return
+	}
+
+	id, _ := strconv.Atoi(user.Id)
+	*userId = id
 }
