@@ -11,8 +11,6 @@ In this repository you'll find my preferred codebase style which are highly infl
 
 More explanation will come later on after I finish testing this project.
 
-> tl;dr; Ini repo dibikin selama dua hari, soalnya kemaren LGT Outing + ada backlog + sprint review, jadi seadanya aja wkwk 😆
-
 ## What you'll get
 
 It ain't much, but honest work :smile:
