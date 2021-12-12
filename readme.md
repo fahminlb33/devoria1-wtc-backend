@@ -11,9 +11,56 @@ In this repository you'll find my preferred codebase style which are highly infl
 
 More explanation will come later on after I finish testing this project.
 
-## Pretty Coverage Report
+## What you'll get
 
-I already included Codecov report if you want fancy report, but if you want a pretty coverage report that you can generate locally, I have the script in `./make coverage_pretty`, but you'll need to install these additional dependencies.
+It ain't much, but honest work :smile:
+
+- MEWS API - User management API: register, login, profile
+- MEWS API - Article management API: create, update, delete, find (with pagination), get single
+- Integrated with Elastic APM
+- Using PostgreSQL with GORM
+- Docker support
+- Unit tests
+- Pretty much overkill coverage report lol
+
+## Running this Project
+
+For simplicity sake, you can run this projet in Docker. Clone this repo and then run `docker-compose up` at this project root directory. You'll get ELK already setup (Elasticsearch, Kibana, Elastic APM), PostgreSQL, and MEWS API all in single docker-compose.
+
+If you prefer running this app locally, you'll need Go 1.17 and PostgreSQL running on your local machine. Rename the `.env.example` to `.env` and adjust the contents according to your environment. If you want to use APM, you'll have to cofigure it yourself too.
+
+To run this project:
+
+``` bash
+# install swag to generate swagger
+go install github.com/swaggo/swag/cmd/swag@latest
+
+# if you're on PowerShell terminal,
+./make swagger
+./make run
+
+# if you're on other terminal,
+swag init
+go run main.go
+```
+
+## Configuration
+
+The `.env` file has all the required environment variables you'll need to run this project. One small note about private and public key pair for JWT verification, you'd have to generate a new key WITHOUT password and stored in PCKS1 format.
+
+To generate new key, you can run `./make generate_keypair`. After you've got your keys, encode your keys as Base64 and then store it in the `.env` file. Why I don't place the key as files? Because it's not safe to store keys in your git. You'd be better off using Vault services or just place it in the environment variables.
+
+Other than that, I think the settings is already self explanatory.
+
+## Unit Tests and Coverage
+
+This repo also includes many handy script to run and create coverage reports.
+
+- `./make test`, run all unit tests
+- `./make coverage`, run all unit tests and generate HTML coverage report
+- `./make coverage_pretty`, run all unit test and generate HTML coverage report using Cobertura output and ReportGenerator exporter (nicer UI for coverage report)
+
+Before you can run the `./make coverage_pretty` command, you'll need to install .NET 6 and `gocov` tool to create Cobertura XML. Here's how:
 
 ```bash
 dotnet tool install -g dotnet-reportgenerator-globaltool
