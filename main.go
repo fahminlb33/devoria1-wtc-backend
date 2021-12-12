@@ -11,6 +11,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 
 	docs "github.com/fahminlb33/devoria1-wtc-backend/docs"
 	swaggerfiles "github.com/swaggo/files"
@@ -59,6 +61,11 @@ func main() {
 
 	router.Use(gin.Logger())
 	//router.Use(gin.Recovery())
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		// register custom validator
+		v.RegisterValidation("isarticlepublishstatus", articles.IsArticlePublishStatus)
+	}
 
 	// cors
 	router.Use(cors.New(cors.Config{
