@@ -7,11 +7,6 @@ type FindAllModel struct {
 	Limit   int    `form:"limit" binding:"omitempty,numeric"`
 }
 
-type GetModel struct {
-	UserId    int
-	ArticleId int `uri:"id" binding:"required,numeric"`
-}
-
 type CreateModel struct {
 	UserId  int
 	Title   string               `json:"title" binding:"required,min=5,max=255"`
@@ -27,6 +22,11 @@ type SaveModel struct {
 	Content   string               `json:"content" binding:"omitempty,min=10"`
 	Slug      string               `json:"slug" binding:"omitempty,min=5,max=255"`
 	Status    ArticlePublishStatus `json:"status" binding:"omitempty,isarticlepublishstatus"`
+}
+
+type GetModel struct {
+	UserId    int
+	ArticleId int `uri:"id" binding:"required,numeric"`
 }
 
 type DeleteModel struct {

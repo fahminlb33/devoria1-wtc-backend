@@ -37,12 +37,25 @@ func (u *ArticleUseCaseImpl) FindAll(c context.Context, model FindAllModel) (res
 	var author users.User
 	db.First(&author, model.UserId)
 
-	// get the article
+	// find all articles
 	var articles []Article
+
+	// preload associations
+	searchChain := db.Preload(clause.Associations)
+
+	// pagination
+	searchChain = searchChain.Scopes(utils.Pagination(model.Page, model.Limit))
+
+	// filter by title and content
+	if len(model.Keyword) > 0 {
+		searchChain = searchChain.Scopes(utils.Like("title", model.Keyword), utils.Like("content", model.Keyword))
+	}
+
+	// filter by author
 	if author.Role == users.CONTRIBUTOR {
-		db.Preload(clause.Associations).Find(&articles, "author_id = ?", model.UserId)
+		searchChain.Find(&articles, "author_id = ?", model.UserId)
 	} else {
-		db.Preload(clause.Associations).Find(&articles)
+		searchChain.Find(&articles)
 	}
 
 	// create response
