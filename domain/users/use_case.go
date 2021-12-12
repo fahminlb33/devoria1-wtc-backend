@@ -13,9 +13,9 @@ import (
 )
 
 type UserUseCase interface {
-	Register(c context.Context, model RegisterModel) (resp utils.Response)
-	Login(c context.Context, model LoginModel) (resp utils.Response)
-	GetProfile(c context.Context, model GetProfileModel) (resp utils.Response)
+	Register(c context.Context, model RegisterModel) utils.Response
+	Login(c context.Context, model LoginModel) utils.Response
+	GetProfile(c context.Context, model GetProfileModel) utils.Response
 }
 
 type UserUseCaseImpl struct {
@@ -30,7 +30,7 @@ func ConstructUserUseCase(db *gorm.DB, jwtAuth authentication.IJwtAuth) UserUseC
 	}
 }
 
-func (u *UserUseCaseImpl) Login(c context.Context, model LoginModel) (resp utils.Response) {
+func (u *UserUseCaseImpl) Login(c context.Context, model LoginModel) utils.Response {
 	db := u.Database.WithContext(c)
 
 	// check if the user is already registered
@@ -58,7 +58,7 @@ func (u *UserUseCaseImpl) Login(c context.Context, model LoginModel) (resp utils
 	return utils.WrapResponse(http.StatusOK, "Hello!", finalResponse)
 }
 
-func (u *UserUseCaseImpl) Register(c context.Context, model RegisterModel) (response utils.Response) {
+func (u *UserUseCaseImpl) Register(c context.Context, model RegisterModel) utils.Response {
 	db := u.Database.WithContext(c)
 
 	// check if the user is already registered
@@ -93,7 +93,7 @@ func (u *UserUseCaseImpl) Register(c context.Context, model RegisterModel) (resp
 	return utils.WrapResponse(http.StatusCreated, "User registered", finalResponse)
 }
 
-func (u *UserUseCaseImpl) GetProfile(c context.Context, model GetProfileModel) (resp utils.Response) {
+func (u *UserUseCaseImpl) GetProfile(c context.Context, model GetProfileModel) utils.Response {
 	db := u.Database.WithContext(c)
 
 	// get user by ID
